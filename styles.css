@@ -1,0 +1,54 @@
+body {
+    background-color: #FDF6E3;
+}
+
+a {
+    color: #2AA198;
+    font-size: 14px;
+}
+
+h1 {
+    color: #586E75;
+    font-family: 'Inconsolata', monospace;
+    font-size: 24px;
+}
+
+h2 {
+    color: #586E75;
+    font-family: 'Inconsolata', monospace;
+    font-size: 18px;
+}
+
+img {
+    width: 150;
+    height: 200;
+}
+
+hr {
+    size: 2;
+    width: 60%;
+    color: #A5B2B6;
+    text-align: left;
+    margin-left: 0;
+}
+
+button {
+    background-color: #FDF6E3;
+    border-color: #586E75;
+    color:#586E75;
+    font-family: 'Inconsolata', monospace;
+}
+
+.row {
+    display: flex;
+    margin-bottom: 60%;
+    text-align: left;
+}
+
+.column {
+    color: #586E75;
+    flex: 50%;
+    font-family: 'Inconsolata', monospace;
+    padding-right: 10%;
+    font-size: 14px;
+}

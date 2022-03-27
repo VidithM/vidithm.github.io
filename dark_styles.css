@@ -1,0 +1,53 @@
+body {
+    background-color: #000000;
+}
+
+a {
+    color: #9CCC9C;
+    font-size: 14px;
+}
+
+button {
+    background-color: #000000;
+    border-color: #20C20E;
+    color:#20C20E;
+    font-family: 'Inconsolata', monospace;
+    font-family: 'Open Sans', sans-serif;
+    font-family: 'Turret Road', cursive;
+}
+
+h1 {
+    color: #20C20E;
+    font-family: 'Inconsolata', monospace;
+    font-family: 'Open Sans', sans-serif;
+    font-family: 'Turret Road', cursive;
+    font-size: 24px;
+}
+
+h2 {
+    color: #9CCC9C;
+    font-family: 'Inconsolata', monospace;
+    font-family: 'Open Sans', sans-serif;
+    font-family: 'Turret Road', cursive;
+    font-size: 18px;
+}
+
+.row {
+    text-align: center;
+}
+
+.bar {
+    visibility: hidden;
+}
+
+.column {
+    color: #1F9612;
+    font-family: 'Inconsolata', monospace;
+    font-family: 'Open Sans', sans-serif;
+    font-family: 'Turret Road', cursive;
+    font-size: 14px;
+}
+
+#img_column {
+    visibility: collapse;
+}
