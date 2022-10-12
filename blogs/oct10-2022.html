@@ -1,0 +1,68 @@
+<head>
+    <title>
+        October 10, 2022: Spanning trees of random graphs
+    </title>
+    <link id="css" rel="stylesheet" href="../styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link id="font_control" href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&family=Open+Sans:wght@300;400&family=Turret+Road:wght@700&display=swap" rel="stylesheet">
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div id="main_div" class="row">
+        <div class="column">
+            <a href="../index.html">Back</a>
+            <h2>
+                October 10, 2022
+            </h2>
+            <t>
+                To preface this, I've been thinking about starting a blog for quite some time now: it's a great way to jot down and materialize fleeting thoughts,
+                and easily reflect on them later. It might also serve as an interesting read to those in the future. I intend to use this space primarily to record
+                thoughts, reflections, and ideas I have about computer science, but possibly also about other stuff on occasion.
+                <br>
+                Today, I want to talk about spanning trees of random graphs. I started thinking about this while I was creating
+                problem ideas for the fall local programming contest at Texas A&M. Let's assume we have a random undirected, unweighted graph.
+                For simplicity, we can also assume that the graph is connected. The problem is then to find spanning trees in the graph
+                that have:
+                <ol>
+                    <li>The minimum diameter over any spanning tree</li>
+                    <li>The maximum diameter over any spanning tree</li>
+                </ol>
+                Let's start with the first case. For quite some time, I mistakenly believed that any BFS tree of the graph would do the trick. But after a while of prodding around,
+                I produced a counterexample that disproves this. Consider the following graph:
+                <br>
+                <a href="counterexample.png" target="_blank">Image</a>
+                <br>
+                In the center is the graph. The tree on the left is the BFS tree rooted at node 4, and on the right is the BFS tree rooted at node 1.
+                Clearly, they have different diameters (highlighted in purple). 
+                <br>
+                Intrigued, I started searching about this problem online. It turns out that the min-diameter spanning tree is a well-studied and important problem in computer science, and there is in fact a
+                polynomial time (\(O(n^3)\), where \(n\) is the number of nodes) algorithm introduced in 1991 by Ho et al. (<a href="https://doi.org/10.1137/0220060" target="_blank">link</a>). Their algorithm is restricted
+                to use on Euclidean graphs, or graphs that can be embedded in a \(\mathbb{R}^{n}\) space. This imposes constraints that general graphs don't have, such as the fact that triangles in the graph
+                must actually satisfy the triangle inequality. However, since the focus of this blog is only on unweighted graphs, this approach suffices.
+                <br>
+                <br>
+                The difficulty of producing the max-diameter spanning tree is far more apparent. We can show that this is an NP-hard problem by showing a reduction
+                from the Hamiltonian path problem. Specifically, the max-diameter spanning tree having a diameter of length \(n - 1\) is equivalent to there existing a Hamiltonian path. 
+                Let's prove the implications in both directions:
+                <ol>
+                    <li>(Max-diameter spanning tree with diameter \(n - 1 \))\(\implies\) Hamiltonian path: Such a tree must be a straight line, so it has the form of a path.
+                        The fact that it is of length \(n - 1\) and visits each node once qualifies it as a Hamiltonian path.
+                    </li>
+                    <li>
+                        Hamiltonian path \(\implies\) (Max-diameter spanning tree with diameter \(n - 1 \)): By definition of Hamiltonian path and the fact that such a path can 
+                        be used as a spanning tree.
+                    </li>
+                </ol>
+                <br>
+                It seems that there is an inherent connection between the tractability of these problems and the problems of finding shortest and longest paths in a graph.
+                Shortest paths are one of the most classic problems in computer science, and the age-old algorithms are likely well-known to anyone familiar with CS. However,
+                longest paths are like the evil twin of shortest paths; they are known to be hard to even approximate. I find it extremely ironic that this is the case.
+                I would expect the most useful things to be hard to compute, but this example is the exact inverse of that. I think we are pretty dang lucky that
+                shortest paths are easy to compute given how heavily the world relies on them in a vast array of applications.
+            </t>
+        </div>
+    </div>
+</body>
