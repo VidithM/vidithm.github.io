@@ -1,0 +1,61 @@
+<head>
+    <title>
+        October 10, 2022: Graph algorithms in the language of linear algebra
+    </title>
+    <link id="css" rel="stylesheet" href="../../styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link id="font_control" href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&family=Open+Sans:wght@300;400&family=Turret+Road:wght@700&display=swap" rel="stylesheet">
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div id="main_div" class="row">
+        <div class="column">
+            <a href="../../index.html">Back</a>
+            <h2>
+                October 21, 2022
+            </h2>
+            <t>
+                Today, I want to talk a little bit about what my undergraduate research for this year is about. I'm working on developing a couple new algorithms for 
+                <a href="https://github.com/graphblas/lagraph" target="_blank">LAGraph</a>, which is an open source collection and test harness for graph algorithms.
+                There is something special about these algorithms though; they leverage the inherent duality between graphs and matrices, and are expressed entirely
+                using linear algebraic operations.
+                <br><br>
+                Let's look at a simple example using breadth-first search on an undirected graph. The link which allows us to analyze BFS (and many other algorithms) from a 
+                linear algebra perspective is the adjacency matrix \(A\), where \(A_{ij} = 1\) if there is an edge between \(i, j\), or 0 otherwise (for practical use, we would leave entries without edges empty instead of placing a 0, but for demonstration this suffices). 
+                Presenting a graph in this format cleanly encodes the connectivity information in a way that is compatible with well-defined algebraic operations, such as matrix-vector multiplication. 
+                In the case of BFS, let's say we encode the set of source nodes in a vector \(s\) (i.e. make all entries 0 and mark the source nodes with 1s). Let's say \(s'\) = \(A * s\). It turns out that \(s'\) will contain non-zero entries encoding the set of nodes exactly 1 step 
+                away from the source. Why? Let's look at the result for a single row \(k\). \(s'_{k}\) will be the sum of all non-zero entries in \(A_{k}\) that coincide with non-zero entries in \(s\). In other words, the result will be non-zero
+                if vertex \(k\) is adjacent to some source vertex in \(s\).
+                <br><br>
+                Now that we've seen a simple example, let's introduce a powerful generalization of matrix-vector multiplication using an algebraic structure known as a <a href="https://wikipedia.org/wiki/Semiring" target="_blank">semiring</a>. A semiring is a set equipped with two binary operations, addition and multiplication.
+                Note that it doesn't matter how we define these operations, so long as they are closed on the set, have identity elements in the set, and some other constraints (like multiplication should distribute over addition, addition should be commutative, etc.). I won't go too much into these
+                specific details here since it's not important to understand the intuition, but if you want the comprehensive explanation visit the Wikipedia link above. Actually, in practice, some of the formal constraints are omitted for convenience. For example, in GraphBLAS, which is the framework
+                underlying the algorithms in LAGraph, the multiplicative operator of a semiring need not distribute over addition.
+                <br><br>
+                The application of a semiring in generalizing matrix-vector multiplication (or more generally, tensor multiplication), is quite clear, since conventional matrix-vector multiplication just uses the default semiring (some set of numbers using arithmetic addition and multiplication). We can denote a semiring in
+                compact notation with \((\oplus.\otimes)\), where "\(\oplus\)" is the additive operation and "\(\otimes\)" is the multiplicative.
+                <br><br>
+                Going back to our BFS example, if we constrained the domain of \(A\) and \(s\) to the Boolean set \(\{0, 1\}\), and used semiring \((\lor.\land)\), we would get a much more intuitive result if we just care about encoding sets of vertices, since we don't need to account
+                for edge weights or anything else that would produce non-Boolean values.
+                <br><br>
+                Hopefully it's somewhat clear how these matrix operations work and how powerful they are for operating on graphs. Generally speaking, graph algorithms that rely on, quoting my professor, "bulk-style parallelism", are the best suited for expressing in this manner, since matrix operations do in fact
+                compute bulk, level-by-level results across the entire graph. This also means that it can be quite difficult for certain paradigms, such as DFS, to be expressed in this manner. However, progress is being made to uncover methods to overcome such obstacles, such as this <a href="https://dl.acm.org/doi/abs/10.1145/3315454.3329962" target="_blank">paper</a> that actually
+                proposes a method for linear algebraic DFS.
+                <br><br>
+                Now I want to shift gears to focus more on what my specific algorithms are about. I am developing a method to coarsen an undirected graph based on a maximal matching. The matching may seek to maximize the total edge weight, minimize it, or be random. Coarsening refers to collapsing edges in the matching. In particular,
+                if we have a graph with \(n\) vertices, and produce a matching with \(k\) edges, the result will have \((n - k)\) nodes since we collapse the edges that have been chosen for the matching.
+                <br><br>
+                This type of coarseing is useful for solving a problem known as graph partitioning. Partitioning refers to the problem of dividing the vertices of a graph into \(k\) pairwise disjoint subsets \(V_1, V_2, ... V_k\) and \(\bigcup_{i=1}^{k}V_{i} = V\), where \(V\) is the set of vertices. The edge-cut of a partition is defined as the sum of edge weights
+                of edges between vertices belonging to different subsets. The goal of the problem is to minimize the edge-cut. This is an NP-hard problem, so we must find good ways to approximate it.
+                <br>
+                One technique that has appeared frequently in literature is that of <a href="https://ieeexplore.ieee.org/abstract/document/1383165" target="_blank">multilevel bisection</a>. One of the core steps of this method is the coarsening as described above, and the result is a good bisection (i.e. partition with \(k = 2\)) of the graph. We can then apply this
+                method recursively to get k-way partitions. Currently, graph partitioning is not something being developed in LAGraph, so my work is a first step in that direction.
+                <br><br>
+                That's seems like a good stopping point for now. I can go into more detail of how my algorithm actually works in the context of the matrix operations we discussed earlier, but maybe that's something to save for later. Cya!
+            </t>
+        </div>
+    </div>
+</body>
