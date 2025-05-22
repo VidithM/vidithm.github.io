@@ -1,114 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>
-        Vidith Madhu
-    </title>
-    <link id="css" rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link id="font_control" href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&family=Open+Sans:wght@300;400&family=Turret+Road:wght@700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Webpage</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: flex;
+            gap: 40px;
+        }
+        .main-content {
+            flex: 2;
+        }
+        .sidebar {
+            flex: 1;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #222;
+        }
+        h2 {
+            font-size: 1.8em;
+            margin-top: 40px;
+            color: #222;
+        }
+        p {
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        .profile-pic {
+            width: 250px;
+            height: 250px;
+            object-fit: cover;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        a:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 20px;
+            }
+            .sidebar {
+                order: -1;
+            }
+            .profile-pic {
+                width: 120px;
+                height: 120px;
+            }
+        }
+        .codeblock {
+            padding:20px;
+            color:#faffb1;
+            background-color:#222;
+        }
+    </style>
 </head>
-
 <body>
-    <div id="main_div" class="row">
-        <div class="column">
-            <h1 id="top">Vidith Madhu</h1>
-            <br><br>
-            <a href="#portfolio">Portfolio | </a> 
-            <a href="#qualifications">Qualifications | </a> 
-            <a href="#service">Service | </a>
-            <a href="#blogs">Blog Entries</a>
-            <br><br>
-            <t>
-                Hi! I'm Vidith, I'm currently a junior CS major at Texas A&M.
-               <br><br>
-                Here are some of my involvements:
-                <ul>
-                    <li>Competitor in <a href="https://icpc.global/" target="_blank">TAMU ICPC teams</a></li>
-                    <li>Officer of <a href="https://tamuacpc.com/" target="_blank">TAMU ACPC</a></li>
-                    <li>Multi-time <a href="https://devpost.com/vm951" target="_blank">hackathon winner</a></li>
-                    <li>Undergraduate algorithms researcher</li>
-                    <li>Discrete math enthusiast</li>
-                </ul>
-            </t>
-            <br>
-            <hr class="bar"> 
-            <br>
-            <h2 id="portfolio">Portfolio</h2>
-            <a href="#top">Go to top</a>
-            <br><br>
-            <t>
-                I have worked on numerous projects that I believe in. I try not to create projects just for the sake of creating something -
-                rather, I seek inspiration from my day-to-day needs and problems in the community. Lately, I've also been trying 
-                to incorporate my interests/skills (mainly algorithms) into what I make. Here are some examples of what I've built in the past:
-                <ul>
-		    <li>3D CPU rasterizer w/ texutre mapping</li>
-                    <li>Music analyzer Chromium extension</li>
-                    <li>Full-stack messaging webapp</li>
-                    <li>FTC robotics event <a href="https://play.google.com/store/apps/details?id=com.brokenaxles.ftcteamscouter" target="_blank">scouting app</a></li>
-                </ul>
+    <div class="container">
+        <div class="main-content">
+            <h1>Vidith Madhu</h1>
+            <p>
+                I'm currently a software engineer at Nvidia, working on Linux graphics drivers. I previously interned
+                on the same team at Nvidia, and at Amazon before that.
                 <br><br>
-                You can follow my progress on my <a href="https://github.com/vidithm" target="_blank">GitHub</a>
-                <br>
-                Also be sure to check out my <a href="https://linkedin.com/in/vidith-madhu" target="_blank">LinkedIn</a>
+                I graduated from Texas A&M with a bachelor's and master's in computer science. During my time there,
+                I worked on parallel graph algorithms research with LAGraph/GraphBLAS under Dr. Tim Davis. My undergrad
+                honors thesis was about accelerated graph matching and coarsening algorithms. During my master's, I worked
+                on the initial CUDA kernels for SuiteSparse:GraphBLAS. I also participated in ICPC, and was fortunate
+                to be able to represent Texas A&M at the 2024 North America Championship.
                 <br><br>
-            </t>
-            <hr class="bar"> 
-            <h2 id="qualifications">Qualifications</h2>
-            <a href="#top">Go to top</a>
-            <br><br>
-            <t>
-                Feel free to take a look at my <a href="./resume.pdf" target="_blank">resume</a>
+                <code class="codeblock">
+                    // Sample code
+                </code>
                 <br><br>
-                My skills include:
-                <ul>
-                    <li>Languages: C++, Python, Java, JavaScript, Rust</li>
-                    <li>General: Algorithms and discrete math, linear algebra</li>
-                </ul>
-                <br>
-                I am interested in further exploring machine learning and metaverse. I am drawn towards ML mainly due to the 
-                need to massively transform and process data with fast algorithms. I am also fascinated with the applications
-                of linear algebra and how it can be used to generalize wide varieties of datasets.
-		Metaverse is another domain that greatly excites me, mainly due to its unparalleled promise of immersion and realism - 
-		I have also had a long-time interest in computer graphics, both because of its ability to deliver authentic
-		and believable experiences, and the technical foundations driving it. This semester, I'm taking a computer graphics course
-		and am finally learning the algorithmic and mathematical background behind process such as rasterization, texture mapping,
-		and raytracing, and find it even more fascinating than I initially thought.
-                <br>
-            </t>
-            <br>
-            <hr class="bar"> 
-            <br>
-            <h2 id="service">Service</h2>
-            <a href="#top">Go to top</a>
-            <br><br>
-            <t>
-                During the summer before our senior year of high school, my friends and I decided to create a <a href="https://youngbytes.wixsite.com/main" target="_blank">tutoring
-                organization</a> directed at sparking an interest in science and technology in young children. While no longer managed by us, we made a huge
-                impact during the onset of the COVID-19 pandemic by allowing students access to low-cost tutoring. We also raised ~$100 for the <a href="https://www.who.int/emergencies/diseases/novel-coronavirus-2019/donate" target="_blank">WHO COVID-19 fund</a>. 
-                <br><br>
-                In the future, I hope to serve the competitive programming community through activities such as problemsetting and event organization. Many large tech companies
-                host their own annual programming competitions (like <a href="https://facebook.com/codingcompetitions/hacker-cup" target="_blank">Facebook Hacker Cup</a> and <a href="https://g.co/codejam" target="_blank">Google Code Jam</a>). If I one day end up
-                working at these companies, it would be a great honor to work behind-the-scenes to make these competitions possible!
-            </t>
-            <br>
-            <hr class="bar">
-            <br>
-            <h2 id="blogs">Blog Entries</h2>
-            <a href="#top">Go to top</a>
-            <br><br>
+                I've lived in Texas for most of my life and currently reside in Austin.
+            </p>
+            <h2>Blog Entries</h2>
             <ul>
-                <li>
-                    <a href="./blogs/oct10-2022/content.html" target="_blank">October 10, 2022</a>
-                </li>
-                <li>
-                    <a href="./blogs/oct21-2022/content.html" target="_blank">October 21, 2022</a>
-                </li>
+                <li><a href="blogs/may20-2025/content.html">Exploring the CUDA software architecture</a> - May 20, 2025</li>
             </ul>
         </div>
-        <div id="img_column" class="column">
-            <br>
-            <img src="my_face.jpg">
+        <div class="sidebar">
+            <img src="my_face.jpg" alt="Profile Picture" class="profile-pic">
+            <p>John Doe</p>
+            <p><a href="mailto:john.doe@example.com">john.doe@example.com</a></p>
         </div>
     </div>
-    <script src="control.js"></script>  
 </body>
+</html>
