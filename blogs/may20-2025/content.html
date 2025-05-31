@@ -2,7 +2,6 @@
     <title>
         May 20, 2025: Exploring the CUDA software architecture
     </title>
-    <link id="css" rel="stylesheet" href="../../styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link id="font_control" href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&family=Open+Sans:wght@300;400&family=Turret+Road:wght@700&display=swap" rel="stylesheet">
@@ -13,7 +12,9 @@
     
     <style>
         .codeblock {
+            font-family: monospace;
             padding:20px;
+            width:50%;
             color:#faffb1;
             background-color:#222;
         }
@@ -27,11 +28,15 @@
                 May 20, 2025
             </h2>
             <md-block>
+                <strong>I. Introduction</strong>
+
                 CUDA is a suite of hardware and software technologies developed by NVIDIA for their GPUs. It is one of the most
                 consequential technologies in modern computing, acting as the bedrock for data parallel workloads present in
                 machine learning, scientific computing, and more. In this blog, I want to share my understanding of the systems
                 software that enables CUDA. Note that this discussion will be targeted to Linux, although I would guess
                 the same ideas apply to Windows.
+
+                <strong>II. A bird's eye view</strong>
 
                 The CUDA software architecture can be broken into two parts: The kernel drivers and the user-space CUDA toolkit. The CUDA toolkit
                 is by far the more transparent part of the system: with public NVIDIA docs and the trusty `readelf` and `objdump`
@@ -40,7 +45,7 @@
                 cuBLAS, cuSPARSE, cuDNN, etc. and more.
 
                 The kernel driver is required for communication with the device. Information about this is scarce, so much of what I write
-                here is speculation based on my knowledge from working at NVIDIA. As I understand, the role of the kernel driver should be
+                here is speculation based on my knowledge from working at NVIDIA. As I understand, the role of the CUDA kernel driver should be
                 to allocate and export command buffers for user-space to issue device commands, and to facilitate host-device memory transfers.
                 From user-space's perspective, the interface to these functions are IOCTLs to a device node, located in `/dev`, that is defined and exported
                 by the driver's kernel module. Head-ful (i.e. with display) systems with NVIDIA have the `nvidia`, `nvidia-modeset`, `nvidia-drm`,
@@ -48,12 +53,105 @@
                 management layer. In the graphics stack, this is used by user software like the X driver and OpenGL/Vulkan to manage frame/command buffers, along
                 with parts of the kernel drivers to do e.g. modesetting. I'm assuming CUDA probably uses it too.
                 Data exchange with the GPU is done with DMA: The driver must allocate a region of low-memory (i.e. that which is permanently, directly mapped
-                and cannot be paged) and use the functions in `<linux/dma-mapping.h>` to generate a device-accessible address to it. Users can then obtain
-                access to the DMA region via `mmap`, or the more sophisticated DMA-BUF mechanism in recent kernels.
-                
-                <code class="codeblock">
-                    // Sample code
-                </code>
+                and cannot be paged) and use the functions in `linux/dma-mapping.h` to generate a device-accessible address to it. Users can then obtain
+                access to the DMA region via `mmap`, or the more sophisticated DMA-BUF mechanism in recent kernels. Special care is needed to prevent
+                corruption and maintain a consistent view of this memory between the host and device (i.e. memory fencing and cache synchronization).
+
+                With that outline established, let's dive into what happens when you compile and run a piece of CUDA code:
+
+                <strong>III. NVCC</strong>
+
+                CUDA is an extension to C/C++ that adds constructs for device code. Note that this blog entry will not discuss language specifics, or
+                how to write efficient kernels (which is a separate, comprehensive topic). The CUDA compiler, `nvcc`, is responsible for identifying
+                these constructs in the provided source and compiling them separately from the remaining host code. Therefore, `nvcc` requires
+                a separate host compiler to function (`gcc`, `clang`, ...).
+
+                The device-specific compilation that `nvcc` uses is LLVM based, and emits PTX assembly, which is a virtual assembly language/ISA that
+                is based on device capability (i.e. not a specific device/generation). By design, PTX is forward compatible;
+                any capabilities captured by a given PTX version will be available on all devices compatible with that version onwards.
+                PTX versions are denoted by a "compute" number (e.g. `compute_89` for Ada+ capabilities). The user can specify compute capability
+                at compile time with the `-arch` option, and the respective PTX will be generated. The main disadvantage with this approach is runtime
+                overhead: The compilation of the true device binary is deferred to the runtime PTX JIT compiler (`libnvidia-ptxjitcompiler.so`), which
+                can delay first-time kernel launches (by default, the result of the compilation is saved and reused in a filesystem JIT cache, on Linux at `~/.nv/ComputeCache`).
+                However, this feature is a clear win for portability.
+
+                The user has the option to request full compilation for specific device families, using the `-code` option. This accepts
+                an "SM" number that corresponds to a concrete device family (e.g. `sm_89` for Ada). `nvcc` will then compile PTX into so-called "cubins" or
+                "fatbins", depending on the amount of code generated. Note that this option must be specified in conjunction with `arch`, so producing
+                PTX is unavoidable, unless the special case of `-arch=native` is used, in which case only cubins for the visible devices at compile time
+                are generated.
+
+                So, for example, the following line:
+
+<pre class="codeblock">
+nvcc -arch=compute_50 -code=sm_87,sm_89 test.cu
+</pre>
+
+                will produce compute version 5.0 PTX, and cubins for 8.7 (Ampere) and 8.9 (Ada). `test.cu` is a simple program that
+                does nothing useful:
+<pre class="codeblock">
+__global__ void test () {
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+}
+
+int main() {
+    test<<<1, 1>>> ();
+    cudaDeviceSynchronize ();
+    cudaGetLastError ();
+}
+</pre>
+
+                Analyzing the resulting ELF executable using `readelf` reveals the following NVIDIA specific sections:
+<pre class="codeblock">
+[Nr] Name              Type             Address           Offset
+     Size              EntSize          Flags  Link  Info  Align
+...
+
+[18] .nv_fatbin        PROGBITS         00000000000959a0  000959a0
+     0000000000001d40  0000000000000000   A       0     0     8
+
+[19] __nv_module_id    PROGBITS         00000000000976e0  000976e0
+     000000000000000f  0000000000000000   A       0     0     8
+
+...
+</pre>
+                While not entirely transparent, it's safe to assume that based on the size, `.nv_fatbin` contains both the PTX and cubins.
+                Interestingly, if we omit the `-code` option, the `.nv_fatbin` shrinks to a merge 0xd8 = 216 bytes, and in addition we get
+                many other NV-specific sections:
+<pre class="codeblock">
+[Nr] Name              Type             Address           Offset
+     Size              EntSize          Flags  Link  Info  Align
+...
+
+[18] __nv_module_id    PROGBITS         0000000000099ca0  00099ca0
+     0000000000000093  0000000000000000   A       0     0     32
+[19] .nv_fatbin        PROGBITS         0000000000099d38  00099d38
+     00000000000000d8  0000000000000000   A       0     0     8
+[20] __nv_relfatbin    PROGBITS         0000000000099e10  00099e10
+     00000000001856e0  0000000000000000   A       0     0     8
+[21] .nvHRCE           PROGBITS         000000000021f4f0  0021f4f0
+     0000000000000001  0000000000000000   A       0     0     1
+[22] .nvHRCI           PROGBITS         000000000021f4f1  0021f4f1
+     0000000000000001  0000000000000000   A       0     0     1
+[23] .nvHRDE           PROGBITS         000000000021f4f2  0021f4f2
+     0000000000000001  0000000000000000   A       0     0     1
+[24] .nvHRDI           PROGBITS         000000000021f500  0021f500
+     00000000000000af  0000000000000000   A       0     0     32
+[25] .nvHRKE           PROGBITS         000000000021f5af  0021f5af
+     0000000000000001  0000000000000000   A       0     0     1
+[26] .nvHRKI           PROGBITS         000000000021f5c0  0021f5c0
+     00000000000000ae  0000000000000000   A       0     0     32
+
+...
+</pre>
+                Most likely, `__nv_relfatbin` has the bulk of the content, however I'm not sure what to make of the other sections.
+                This warrants more research on my part...
+
+                One other interesting piece is the size of the entire executable, which, as simple as it is, sits at a whopping 2.6 MB. This can
+                only mean one thing: static linking. While the executable itself is not static, `nvcc` by default uses `libcudart_static.a` and
+                `libcudadevrt.a`, I'm guessing by passing it onto the host compiler. This leads into the next section...
+
+                <strong>IV. CUDA Libraries</strong>
             </md-block>
         </div>
     </div>
