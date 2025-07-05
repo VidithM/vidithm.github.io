@@ -41,8 +41,8 @@
                 The CUDA software architecture can be broken into two parts: The kernel drivers and the user-space CUDA toolkit. The CUDA toolkit
                 is by far the more transparent part of the system: with public NVIDIA docs and the trusty `readelf` and `objdump`
                 tools in Linux, a lot can be learned about it. Broadly, the CUDA toolkit contains all of the user-space utilities needed for
-                CUDA support, such as the `nvcc` compiler, the runtime libraries `libcudart.so` and `cuda.so`, algorithm libraries such as
-                cuBLAS, cuSPARSE, cuDNN, etc. and more.
+                CUDA support, such as the `nvcc` compiler, the runtime libraries `libcudart.so` and `libcuda.so`, algorithm libraries such as
+                cuBLAS, cuSPARSE, cuSOLVER, etc. and more.
 
                 The kernel driver is required for communication with the device. Information about this is scarce, so much of what I write
                 here is speculation based on my knowledge from working at NVIDIA. As I understand, the role of the CUDA kernel driver should be
@@ -149,9 +149,38 @@ int main() {
 
                 One other interesting piece is the size of the entire executable, which, as simple as it is, sits at a whopping 2.6 MB. This can
                 only mean one thing: static linking. While the executable itself is not static, `nvcc` by default uses `libcudart_static.a` and
-                `libcudadevrt.a`, I'm guessing by passing it onto the host compiler. This leads into the next section...
+                `libcudadevrt.a`, I'm guessing by pasing them onto the host compiler with `-l`. This leads into the next section...
 
                 <strong>IV. CUDA Libraries</strong>
+
+                The CUDA libraries form the link between host code and the CUDA runtime/device. It is how users use NVIDIA's pre-built
+                high performance algorithms, manage device memory, launch kernels, manage streams, events, etc.
+                The libraries can be split into four key parts:
+                The runtime libraries (`cudart` and `cudadevrt`), the driver library (`cuda`), algorithm libraries like
+                cuBLAS, cuFFT, and cuSPARSE, and utility libraries like `nvrtc` and the PTX JIT compiler, both used for runtime
+                compilation. 
+                
+                `cudart` and `cudadevrt` both expose the traditional CUDA APIs prefixed with `cuda*` that most people are familiar with: `cudaMalloc()`,
+                `cudaGetLastError()`, and so on. The difference between the two is that `cudart` is the host-side interface
+                while `cudadevrt` is device-side: many of the same APIs available on the host can also be invoked in
+                kernel code. Looking at their respective headers `cuda_device_runtime_api.h` and `cuda_runtime_api.h`,
+                we see similar function declarations, except using the `__host__` modifier instead of `__device__`.
+                The driver library `cuda` can be used almost interexchangably with the runtime library - the only difference
+                is that it offers fine-grained control on things like context management, which are handled transparently
+                in the runtime library. These functions are prefixed with `cu*`.
+
+                The algorithm libraries serve mainly as a platform for higher-level frameworks to leverage. This is especially
+                true for AI/ML frameworks. PyTorch, for example, has undergone extensive design to compile ML code expressed
+                in Python into calls into backend HPC platforms. Most recently, NVIDIA GPUs are used in PyTorch with
+                their TorchInductor backend compiler using Triton; an older technology from NVIDIA called nvFuser was a similar
+                effort. For PyTorch specifically, an important objective of these compilation pipelines is to break through its
+                eager execution model, which adopts a fine-grained view of numerical operations, and coarsen or "fuse"
+                operations. This improves performance by cutting down expensive memory traffic between off-chip VRAM and caches/shared memory/registers.
+                
+                `nvrtc` is a user-facing runtime compilation library for CUDA code. It functions similarly to using `nvcc`, but is meant
+                to eliminate the overhead of spawning `nvcc` at runtime. A good analog to this might be shader compilation
+                in OpenGL: the user must provide stringified CUDA C/C++, along with any required headers, and `nvrtc` exposes
+                the interface necessary to interact with the provided code.
             </md-block>
         </div>
     </div>
