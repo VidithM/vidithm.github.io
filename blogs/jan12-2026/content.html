@@ -1,0 +1,87 @@
+<head>
+    <title>
+        Jan 12, 2026: Concurrency and contention
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link id="font_control" href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&family=Open+Sans:wght@300;400&family=Turret+Road:wght@700&display=swap" rel="stylesheet">
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="module" src="https://md-block.verou.me/md-block.js"></script>
+    
+    <style>
+        .codeblock {
+            font-family: monospace;
+            padding:20px;
+            width:50%;
+            color:#faffb1;
+            background-color:#222;
+        }
+    </style>
+</head>
+<body>
+    <div id="main_div" class="row">
+        <div class="column">
+            <a href="../../index.html">Back</a>
+            <h2>
+                Jan 12, 2026 
+            </h2>
+            <md-block>
+                <strong>I. Introduction</strong>
+                <br><br>
+                Concurrency is an indispensable property of modern computing; it can be defined as the presence of multiple processes that may be observed as
+                running "together". That is, their executions may be interleaved in an unpredictable, non-transparent manner. Beyond enabling multi-processing
+                on a computer, concurrency is important for a variety of reasons, such as improving resource utilization (e.g. overlapping I/O with compute).
+                However, there may be unintended side effects from concurrency, without careful consideration of how concurrent processes access shared resources
+                (e.g. memory, filesystem, etc.).
+                In this blog, I want to examine concurrency in the context of threading in a single process. 
+                <br><br>
+                <strong>II. The need for atomicity</strong>
+                <br><br>
+                Atomicity is a property of concurrent execution where an operation appears to have executed by a single thread in an "uninterrupted" fashion.
+                This is a particularly important property when managing shared resources. A basic example is a shared counter that multiple threads increment
+                concurrently. With proper atomicity, the timeline of such a process should exhibit the expected behavior: each thread's increment operations
+                should be disjoint and unaffected by the others.
+                <br><br>
+                <strong>III. Resolving contention</strong>
+                <br><br>
+                Methods to resolve resource contention between threads and achieve atomicity are called <em>synchronization primitives</em> (will be referred to
+                here by the shorthand "SP"). Many SPs, such as locks and semaphores, are commonly known to most programmers. However, the question arises on how
+                these primitives are implemented in a real system.
+                The analysis of SPs is quite elaborate and yields theoretical bounds in areas like concurrent data structure design and
+                distributed consensus. In practice, modern ISAs expose "building block" instructions for the construction of efficient SPs. We'll explore two
+                of the common building block instructions here: Fetch-and-add (FAA) and compare-and-swap (CAS). First, let's discuss some fundamentals of
+                HW atomicity support.
+                <br><br>
+                <strong>IV. Atomicity of basic memory operations</strong>
+                <br>
+                <i>Note that from here on, we'll assume the focus is on x86.</i>
+                <br><br>
+                Generally speaking, on a uniprocessor system (i.e. a single HW thread), and no other concurrent participants in system state (e.g. a DMA device),
+                ISA-defined instructions are atomic. In this case, only HW interrupts and exceptions contend with the thread. In x86, there is a guarantee that
+                these instructions are atomic with respect to these events: there is a specifiable point in program order at which the event is handled,
+                and every instruction before this point has completed (commited with its results visible globally); every instruction after this point is yet
+                to execute (no visible effects). 
+                Therefore, in the uniprocessor case, basic memops such as `mov`, `push`, `pop`, etc. are guaranteed to be atomic.
+                <br>
+                Moving to a multiprocessor system becomes more interesting. We may now have multiple HW threads running in parallel (i.e. concurrently, at the
+                same point in time). Therefore, it's possible that distinct HW threads could contend for memory at the same location at the same time. The system
+                needs some way to handle this.
+                In x86, many of the memops can be supplied a "LOCK" prefix (0xf0), which requires the CPU to assert exclusive access to the modified cache line for
+                the length of the operation. In case the operation straddles a cache line boundary, a full "bus lock" is required, which is far more expensive.
+                Note that beyond atomicity, there are other issues that need to be addressed in the multiprocessor case, most notably cache coherency (handled
+                in x86 by the MESI protocol). However, that's beyond the scope of the discussion here.
+                <br><br>
+                <strong>V. Supporting higher-level synchronization primitives</strong>
+                <br><br>
+                Support for higher-level SPs typically requires the ISA to expose atomic RMW (read-modify-write) operations. It is intuitive
+                to see why this is required if we consider the following:
+                <br>
+                <ol>
+                </ol>
+                <br>
+            </md-block>
+        </div>
+    </div>
+</body>
